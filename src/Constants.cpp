@@ -24,9 +24,7 @@ void trim(std::string &s)
 {
     constexpr auto is_space = [](char x) { return std::isspace(x); };
     s.erase(s.begin(), std::find_if_not(s.begin(), s.end(), is_space));
-    s.erase(
-        std::find_if_not(s.rbegin(), s.rend(), is_space).base(),
-        s.end());
+    s.erase(std::find_if_not(s.rbegin(), s.rend(), is_space).base(), s.end());
 }
 
 std::vector<std::string> get_variable_string(
@@ -96,7 +94,9 @@ void reduce_minor_arrays(
         std::string gas_minor_trimmed = gas_minor({idx_mnr});
         trim(gas_minor_trimmed);
 
-        gas_is_present({i}) = std::find(wrf_gases.begin(), wrf_gases.end(), gas_minor_trimmed) != wrf_gases.end();
+        gas_is_present({i}) =
+            std::find(wrf_gases.begin(), wrf_gases.end(), gas_minor_trimmed)
+            != wrf_gases.end();
         if (gas_is_present({i}))
             tot_g +=
                 minor_limits_gpt_atm({2, i}) - minor_limits_gpt_atm({1, i}) + 1;
