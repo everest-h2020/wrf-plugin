@@ -8,3 +8,6 @@
 using INTEGER = int;
 /// The default Fortran real type.
 using REAL = float;
+
+/// The mock boolean type.
+using BOOL = signed char;

@@ -528,6 +528,9 @@ Constants::Constants(string_view filename)
             {n_temps, n_press + 1, n_mixingfracs, n_gpts}),
         {n_gpts, n_mixingfracs, n_press + 1, n_temps});
 
+    Array<REAL, 3> rayl_lower{};
+    Array<REAL, 3> rayl_upper{};
+
     // Is it really LW if so read these variables as well.
     if (coef_nc.variable_exists("totplnk")) {
         int n_internal_sourcetemps =
@@ -546,12 +549,12 @@ Constants::Constants(string_view filename)
 
         totplnk_delta = (temp_ref_max - temp_ref_min) / (totplnk.dim(1) - 1);
     } else {
-        Array<REAL, 3> rayl_lower(
+        rayl_lower = Array<REAL, 3>(
             coef_nc.get_variable<REAL>(
                 "rayl_lower",
                 {n_temps, n_mixingfracs, n_gpts}),
             {n_gpts, n_mixingfracs, n_temps});
-        Array<REAL, 3> rayl_upper(
+        rayl_upper = Array<REAL, 3>(
             coef_nc.get_variable<REAL>(
                 "rayl_upper",
                 {n_temps, n_mixingfracs, n_gpts}),
@@ -571,6 +574,24 @@ Constants::Constants(string_view filename)
         REAL mg_index = coef_nc.get_variable<REAL>("mg_default");
         REAL sb_index = coef_nc.get_variable<REAL>("sb_default");
     }
+
+    init_abs_coeffs(
+        key_species,
+        band2gpt,
+        band_lims_wvn,
+        press_ref,
+        temp_ref,
+        press_ref_trop,
+        temp_ref_p,
+        temp_ref_t,
+        gas_minor,
+        identifier_minor,
+        minor_gases_lower,
+        minor_gases_upper,
+        scaling_gas_lower,
+        scaling_gas_upper,
+        rayl_lower,
+        rayl_upper);
 }
 
 void Constants::init_abs_coeffs(

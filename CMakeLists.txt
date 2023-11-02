@@ -23,6 +23,7 @@ add_compile_options(
 add_library(plugin_rrtmg SHARED
     src/plugin.cpp
     src/Constants.cpp
+    src/gas_optics_fpga.cpp
 )
 
 target_include_directories(plugin_rrtmg PUBLIC
