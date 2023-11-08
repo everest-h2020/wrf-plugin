@@ -57,7 +57,8 @@ struct tensor : tensor_storage<T, Order, Allocator>,
     explicit constexpr tensor(
         std::convertible_to<
             index_t> auto... sizes) requires(sizeof...(sizes) == Order)
-            : tensor(*layout_type::innermost(sizes...))
+            : storage_type(),
+              m_layout(*layout_type::innermost(sizes...))
     {}
 
     /*implicit*/ constexpr tensor(const tensor &copy)
