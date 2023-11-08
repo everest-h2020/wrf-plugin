@@ -468,8 +468,8 @@ void interpolation_fpga(
     int jpress[5376])
 {
 
-    const int block_col = 4;
-    const int block_lay = 2;
+    const int block_col = 1;
+    const int block_lay = 32;
     const int block_flav = 16;
 
     const int grid_col = ncol / block_col + (ncol % block_col > 0);
@@ -569,12 +569,12 @@ void compute_tau_absorption_fpga(
 {
 
     // from tuning:
-    int grid_x = 64;
-    int grid_y = 42;
-    int grid_z = 3;
-    int block_x = 4;
-    int block_y = 1;
-    int block_z = 48;
+    int grid_x = 16;
+    int grid_y = 32;
+    int grid_z = 1;
+    int block_x = 16;
+    int block_y = 2;
+    int block_z = 1;
 
     for (int i = 0; i < grid_z; i++)
         for (int j = 0; j < grid_y; j++)
@@ -617,11 +617,11 @@ void compute_tau_absorption_fpga(
 
     // from tuning:
     grid_x = 1;
-    grid_y = 42;
-    grid_z = 8;
-    block_x = 8;
-    block_y = 1;
-    block_z = 16;
+    grid_y = 32;
+    grid_z = 1;
+    block_x = 1;
+    block_y = 2;
+    block_z = 1;
 
     for (int i = 0; i < grid_z; i++)
         for (int j = 0; j < grid_y; j++)
@@ -673,11 +673,11 @@ void compute_tau_absorption_fpga(
 
     // from tuning:
     grid_x = 1;
-    grid_y = 42;
-    grid_z = 4;
-    block_x = 8;
-    block_y = 1;
-    block_z = 32;
+    grid_y = 32;
+    grid_z = 1;
+    block_x = 1;
+    block_y = 2;
+    block_z = 1;
 
     for (int i = 0; i < grid_z; i++)
         for (int j = 0; j < grid_y; j++)
@@ -750,11 +750,11 @@ void compute_tau_rayleigh_fpga(
 {
 
     // from tuning:
-    int grid_x = 32;
-    int grid_y = 42;
-    int grid_z = 14;
-    int block_x = 4;
-    int block_y = 1;
+    int grid_x = 1;
+    int grid_y = 32;
+    int grid_z = 16;
+    int block_x = 1;
+    int block_y = 2;
     int block_z = 16;
 
     for (int i = 0; i < grid_z; i++)

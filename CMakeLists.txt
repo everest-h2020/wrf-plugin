@@ -30,8 +30,10 @@ target_include_directories(plugin_rrtmg PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+target_link_libraries(plugin_rrtmg PUBLIC -lnetcdf)
+
 add_executable(runner
     src/runner.cpp
 )
 
-target_link_libraries(runner plugin_rrtmg -lnetcdf)
+target_link_libraries(runner plugin_rrtmg)
