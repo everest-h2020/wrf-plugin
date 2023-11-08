@@ -60,10 +60,7 @@ void dump_atmosphere(
 
 Constants &get_or_load_constants()
 {
-    static Constants constants(
-        "/home/friebel/everest/rte-rrtmgp-cpp/rte-rrtmgp/rrtmgp/data/"
-        "rrtmgp-data-sw-g112-210809.nc");
-
+    static Constants constants("./data/rrtmgp-data-sw-g112-210809.nc");
     return constants;
 }
 
