@@ -2,6 +2,7 @@
 #include "rrtmgp/Constants.h"
 #include "rrtmgp/kernel_launchers.h"
 
+#include <cassert>
 #include <cstddef>
 #include <iomanip>
 #include <iostream>
@@ -60,10 +61,7 @@ void dump_atmosphere(
 
 Constants &get_or_load_constants()
 {
-    static Constants constants(
-        "/home/friebel/everest/rte-rrtmgp-cpp/rte-rrtmgp/rrtmgp/data/"
-        "rrtmgp-data-sw-g112-210809.nc");
-
+    static Constants constants("./data/rrtmgp-data-sw-g112-210809.nc");
     return constants;
 }
 
@@ -110,17 +108,23 @@ void plugin_rrtmg_sw_taumol(
 
     const auto &constants = get_or_load_constants();
 
-    const auto n_bnd = constants.band2gpt.dim(1);
-    const auto n_flav = constants.flavor.dim(1);
+    const auto n_bnd = constants.band2gpt.dim(2);
+    const auto n_flav = constants.flavor.dim(2);
     const auto n_eta = constants.kmajor.dim(2);
     const auto n_pres = constants.kmajor.dim(3) - 1;
-    const auto n_temp = constants.kmajor.dim(4);
+    const auto n_temp = constants.kmajor.dim(1);
+    assert(constants.kmajor.dim(4) == n_gpt);
+    n_gas = 8;
 
     REAL* col_gas = (REAL*)calloc(n_layers * n_gas, sizeof(REAL));
 
-    for (int i = 0; i < n_layers; ++i)
-        for (int j = 0; j < n_gas; ++j)
-            col_gas[i * n_gas + j] = n_prime[i * n_gas + j] * n_d[i];
+    for (int i = 0; i < n_layers; ++i) {
+        for (int j = 1; j < n_gas; ++j) {
+            // col_gas[i * n_gas + j] = n_prime[i * n_gas + j] * n_d[i];
+            col_gas[i + j * n_gas] = n_prime[i * n_gas + (j - 1)] * n_d[i];
+        }
+        col_gas[i] = n_d[i];
+    }
 
     REAL* fmajor = (REAL*)calloc(n_flav * n_layers * 2 * 2 * 2, sizeof(REAL));
     REAL* fminor = (REAL*)calloc(n_flav * n_layers * 2 * 2, sizeof(REAL));

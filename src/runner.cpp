@@ -86,13 +86,8 @@ void load_test_data(string_view filename)
 
 int main(int argc, const char** argv)
 {
-    Constants constants(
-        "/home/friebel/everest/rte-rrtmgp-cpp/rte-rrtmgp/rrtmgp/data/"
-        "rrtmgp-data-sw-g112-210809.nc");
-
-    load_test_data(
-        "/home/friebel/everest/wrf_kernels/rrtmgp-data/"
-        "dump_interpolate_in_0_sw.nc");
+    Constants constants("./data/rrtmgp-data-sw-g112-210809.nc");
+    load_test_data("./data/dump_interpolate_in_0_sw.nc");
 
     const auto n_lay = T_lay.dim(1);
     const auto n_gpt = constants.gpt2band.dim(1);
