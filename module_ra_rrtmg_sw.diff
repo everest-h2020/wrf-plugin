@@ -1,0 +1,327 @@
+diff --git a/phys/module_ra_rrtmg_sw.F b/phys/module_ra_rrtmg_sw.F
+index 722566124..03554634e 100644
+--- a/phys/module_ra_rrtmg_sw.F
++++ b/phys/module_ra_rrtmg_sw.F
+@@ -34,9 +34,9 @@
+       integer(kind=im), parameter :: nstr   = 2
+       integer(kind=im), parameter :: nmol   = 7
+ ! Use for 112 g-point model   
+-      integer(kind=im), parameter :: ngptsw = 112    !jpgpt
++!       integer(kind=im), parameter :: ngptsw = 112    !jpgpt
+ ! Use for 224 g-point model   
+-!      integer(kind=im), parameter :: ngptsw = 224   !jpgpt
++     integer(kind=im), parameter :: ngptsw = 224   !jpgpt
+ 
+ ! may need to rename these - from v2.6
+       integer(kind=im), parameter :: jpband   = 29
+@@ -50,66 +50,66 @@
+       integer(kind=im), parameter :: jmxstr   = 16
+ 
+ ! Use for 112 g-point model   
+-      integer(kind=im), parameter :: ng16 = 6
+-      integer(kind=im), parameter :: ng17 = 12
+-      integer(kind=im), parameter :: ng18 = 8
+-      integer(kind=im), parameter :: ng19 = 8
+-      integer(kind=im), parameter :: ng20 = 10
+-      integer(kind=im), parameter :: ng21 = 10
+-      integer(kind=im), parameter :: ng22 = 2
+-      integer(kind=im), parameter :: ng23 = 10
+-      integer(kind=im), parameter :: ng24 = 8
+-      integer(kind=im), parameter :: ng25 = 6
+-      integer(kind=im), parameter :: ng26 = 6
+-      integer(kind=im), parameter :: ng27 = 8
+-      integer(kind=im), parameter :: ng28 = 6
+-      integer(kind=im), parameter :: ng29 = 12
+-
+-      integer(kind=im), parameter :: ngs16 = 6
+-      integer(kind=im), parameter :: ngs17 = 18
+-      integer(kind=im), parameter :: ngs18 = 26
+-      integer(kind=im), parameter :: ngs19 = 34
+-      integer(kind=im), parameter :: ngs20 = 44
+-      integer(kind=im), parameter :: ngs21 = 54
+-      integer(kind=im), parameter :: ngs22 = 56
+-      integer(kind=im), parameter :: ngs23 = 66
+-      integer(kind=im), parameter :: ngs24 = 74
+-      integer(kind=im), parameter :: ngs25 = 80
+-      integer(kind=im), parameter :: ngs26 = 86
+-      integer(kind=im), parameter :: ngs27 = 94
+-      integer(kind=im), parameter :: ngs28 = 100
+-      integer(kind=im), parameter :: ngs29 = 112
++!       integer(kind=im), parameter :: ng16 = 6
++!       integer(kind=im), parameter :: ng17 = 12
++!       integer(kind=im), parameter :: ng18 = 8
++!       integer(kind=im), parameter :: ng19 = 8
++!       integer(kind=im), parameter :: ng20 = 10
++!       integer(kind=im), parameter :: ng21 = 10
++!       integer(kind=im), parameter :: ng22 = 2
++!       integer(kind=im), parameter :: ng23 = 10
++!       integer(kind=im), parameter :: ng24 = 8
++!       integer(kind=im), parameter :: ng25 = 6
++!       integer(kind=im), parameter :: ng26 = 6
++!       integer(kind=im), parameter :: ng27 = 8
++!       integer(kind=im), parameter :: ng28 = 6
++!       integer(kind=im), parameter :: ng29 = 12
++! 
++!       integer(kind=im), parameter :: ngs16 = 6
++!       integer(kind=im), parameter :: ngs17 = 18
++!       integer(kind=im), parameter :: ngs18 = 26
++!       integer(kind=im), parameter :: ngs19 = 34
++!       integer(kind=im), parameter :: ngs20 = 44
++!       integer(kind=im), parameter :: ngs21 = 54
++!       integer(kind=im), parameter :: ngs22 = 56
++!       integer(kind=im), parameter :: ngs23 = 66
++!       integer(kind=im), parameter :: ngs24 = 74
++!       integer(kind=im), parameter :: ngs25 = 80
++!       integer(kind=im), parameter :: ngs26 = 86
++!       integer(kind=im), parameter :: ngs27 = 94
++!       integer(kind=im), parameter :: ngs28 = 100
++!       integer(kind=im), parameter :: ngs29 = 112
+ 
+ ! Use for 224 g-point model   
+-!      integer(kind=im), parameter :: ng16 = 16
+-!      integer(kind=im), parameter :: ng17 = 16
+-!      integer(kind=im), parameter :: ng18 = 16
+-!      integer(kind=im), parameter :: ng19 = 16
+-!      integer(kind=im), parameter :: ng20 = 16
+-!      integer(kind=im), parameter :: ng21 = 16
+-!      integer(kind=im), parameter :: ng22 = 16
+-!      integer(kind=im), parameter :: ng23 = 16
+-!      integer(kind=im), parameter :: ng24 = 16
+-!      integer(kind=im), parameter :: ng25 = 16
+-!      integer(kind=im), parameter :: ng26 = 16
+-!      integer(kind=im), parameter :: ng27 = 16
+-!      integer(kind=im), parameter :: ng28 = 16
+-!      integer(kind=im), parameter :: ng29 = 16
+-
+-!      integer(kind=im), parameter :: ngs16 = 16
+-!      integer(kind=im), parameter :: ngs17 = 32
+-!      integer(kind=im), parameter :: ngs18 = 48
+-!      integer(kind=im), parameter :: ngs19 = 64
+-!      integer(kind=im), parameter :: ngs20 = 80
+-!      integer(kind=im), parameter :: ngs21 = 96
+-!      integer(kind=im), parameter :: ngs22 = 112
+-!      integer(kind=im), parameter :: ngs23 = 128
+-!      integer(kind=im), parameter :: ngs24 = 144
+-!      integer(kind=im), parameter :: ngs25 = 160
+-!      integer(kind=im), parameter :: ngs26 = 176
+-!      integer(kind=im), parameter :: ngs27 = 192
+-!      integer(kind=im), parameter :: ngs28 = 208
+-!      integer(kind=im), parameter :: ngs29 = 224
++     integer(kind=im), parameter :: ng16 = 16
++     integer(kind=im), parameter :: ng17 = 16
++     integer(kind=im), parameter :: ng18 = 16
++     integer(kind=im), parameter :: ng19 = 16
++     integer(kind=im), parameter :: ng20 = 16
++     integer(kind=im), parameter :: ng21 = 16
++     integer(kind=im), parameter :: ng22 = 16
++     integer(kind=im), parameter :: ng23 = 16
++     integer(kind=im), parameter :: ng24 = 16
++     integer(kind=im), parameter :: ng25 = 16
++     integer(kind=im), parameter :: ng26 = 16
++     integer(kind=im), parameter :: ng27 = 16
++     integer(kind=im), parameter :: ng28 = 16
++     integer(kind=im), parameter :: ng29 = 16
++
++     integer(kind=im), parameter :: ngs16 = 16
++     integer(kind=im), parameter :: ngs17 = 32
++     integer(kind=im), parameter :: ngs18 = 48
++     integer(kind=im), parameter :: ngs19 = 64
++     integer(kind=im), parameter :: ngs20 = 80
++     integer(kind=im), parameter :: ngs21 = 96
++     integer(kind=im), parameter :: ngs22 = 112
++     integer(kind=im), parameter :: ngs23 = 128
++     integer(kind=im), parameter :: ngs24 = 144
++     integer(kind=im), parameter :: ngs25 = 160
++     integer(kind=im), parameter :: ngs26 = 176
++     integer(kind=im), parameter :: ngs27 = 192
++     integer(kind=im), parameter :: ngs28 = 208
++     integer(kind=im), parameter :: ngs29 = 224
+ 
+ ! Source function solar constant
+       real(kind=rb), parameter :: rrsw_scon = 1.36822e+03     ! W/m2
+@@ -4839,97 +4839,97 @@
+ 
+ ! Use this set for 112 quadrature point (g-point) model
+ ! ------- Data statements -------
+-      ngc(:) = (/ 6,12, 8, 8,10,10, 2,10, 8, 6, 6, 8, 6,12 /)
+-      ngs(:) = (/ 6,18,26,34,44,54,56,66,74,80,86,94,100,112 /)
+-      ngm(:) = (/ 1,1,2,2,3,3,4,4,5,5,5,5,6,6,6,6, &           ! band 16
+-                  1,2,3,4,5,6,6,7,8,8,9,10,10,11,12,12, &      ! band 17
+-                  1,2,3,4,5,5,6,6,7,7,7,7,8,8,8,8, &           ! band 18
+-                  1,2,3,4,5,5,6,6,7,7,7,7,8,8,8,8, &           ! band 19
+-                  1,2,3,4,5,6,7,8,9,9,10,10,10,10,10,10, &     ! band 20
+-                  1,2,3,4,5,6,7,8,9,9,10,10,10,10,10,10, &     ! band 21
+-                  1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2, &           ! band 22
+-                  1,1,2,2,3,4,5,6,7,8,9,9,10,10,10,10, &       ! band 23
+-                  1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8, &           ! band 24
+-                  1,2,3,3,4,4,5,5,5,5,6,6,6,6,6,6, &           ! band 25
+-                  1,2,3,3,4,4,5,5,5,5,6,6,6,6,6,6, &           ! band 26
+-                  1,2,3,4,5,6,7,7,7,7,8,8,8,8,8,8, &           ! band 27
+-                  1,2,3,3,4,4,5,5,5,5,6,6,6,6,6,6, &           ! band 28
+-                  1,2,3,4,5,5,6,6,7,7,8,8,9,10,11,12 /)        ! band 29
+-      ngn(:) = (/ 2,2,2,2,4,4, &                               ! band 16
+-                  1,1,1,1,1,2,1,2,1,2,1,2, &                   ! band 17
+-                  1,1,1,1,2,2,4,4, &                           ! band 18
+-                  1,1,1,1,2,2,4,4, &                           ! band 19
+-                  1,1,1,1,1,1,1,1,2,6, &                       ! band 20
+-                  1,1,1,1,1,1,1,1,2,6, &                       ! band 21
+-                  8,8, &                                       ! band 22
+-                  2,2,1,1,1,1,1,1,2,4, &                       ! band 23
+-                  2,2,2,2,2,2,2,2, &                           ! band 24
+-                  1,1,2,2,4,6, &                               ! band 25
+-                  1,1,2,2,4,6, &                               ! band 26
+-                  1,1,1,1,1,1,4,6, &                           ! band 27
+-                  1,1,2,2,4,6, &                               ! band 28
+-                  1,1,1,1,2,2,2,2,1,1,1,1 /)                   ! band 29
+-      ngb(:) = (/ 16,16,16,16,16,16, &                         ! band 16
+-                  17,17,17,17,17,17,17,17,17,17,17,17, &       ! band 17
+-                  18,18,18,18,18,18,18,18, &                   ! band 18
+-                  19,19,19,19,19,19,19,19, &                   ! band 19
+-                  20,20,20,20,20,20,20,20,20,20, &             ! band 20
+-                  21,21,21,21,21,21,21,21,21,21, &             ! band 21
+-                  22,22, &                                     ! band 22
+-                  23,23,23,23,23,23,23,23,23,23, &             ! band 23
+-                  24,24,24,24,24,24,24,24, &                   ! band 24
+-                  25,25,25,25,25,25, &                         ! band 25
+-                  26,26,26,26,26,26, &                         ! band 26
+-                  27,27,27,27,27,27,27,27, &                   ! band 27
+-                  28,28,28,28,28,28, &                         ! band 28
+-                  29,29,29,29,29,29,29,29,29,29,29,29 /)       ! band 29
++!       ngc(:) = (/ 6,12, 8, 8,10,10, 2,10, 8, 6, 6, 8, 6,12 /)
++!       ngs(:) = (/ 6,18,26,34,44,54,56,66,74,80,86,94,100,112 /)
++!       ngm(:) = (/ 1,1,2,2,3,3,4,4,5,5,5,5,6,6,6,6, &           ! band 16
++!                   1,2,3,4,5,6,6,7,8,8,9,10,10,11,12,12, &      ! band 17
++!                   1,2,3,4,5,5,6,6,7,7,7,7,8,8,8,8, &           ! band 18
++!                   1,2,3,4,5,5,6,6,7,7,7,7,8,8,8,8, &           ! band 19
++!                   1,2,3,4,5,6,7,8,9,9,10,10,10,10,10,10, &     ! band 20
++!                   1,2,3,4,5,6,7,8,9,9,10,10,10,10,10,10, &     ! band 21
++!                   1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2, &           ! band 22
++!                   1,1,2,2,3,4,5,6,7,8,9,9,10,10,10,10, &       ! band 23
++!                   1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8, &           ! band 24
++!                   1,2,3,3,4,4,5,5,5,5,6,6,6,6,6,6, &           ! band 25
++!                   1,2,3,3,4,4,5,5,5,5,6,6,6,6,6,6, &           ! band 26
++!                   1,2,3,4,5,6,7,7,7,7,8,8,8,8,8,8, &           ! band 27
++!                   1,2,3,3,4,4,5,5,5,5,6,6,6,6,6,6, &           ! band 28
++!                   1,2,3,4,5,5,6,6,7,7,8,8,9,10,11,12 /)        ! band 29
++!       ngn(:) = (/ 2,2,2,2,4,4, &                               ! band 16
++!                   1,1,1,1,1,2,1,2,1,2,1,2, &                   ! band 17
++!                   1,1,1,1,2,2,4,4, &                           ! band 18
++!                   1,1,1,1,2,2,4,4, &                           ! band 19
++!                   1,1,1,1,1,1,1,1,2,6, &                       ! band 20
++!                   1,1,1,1,1,1,1,1,2,6, &                       ! band 21
++!                   8,8, &                                       ! band 22
++!                   2,2,1,1,1,1,1,1,2,4, &                       ! band 23
++!                   2,2,2,2,2,2,2,2, &                           ! band 24
++!                   1,1,2,2,4,6, &                               ! band 25
++!                   1,1,2,2,4,6, &                               ! band 26
++!                   1,1,1,1,1,1,4,6, &                           ! band 27
++!                   1,1,2,2,4,6, &                               ! band 28
++!                   1,1,1,1,2,2,2,2,1,1,1,1 /)                   ! band 29
++!       ngb(:) = (/ 16,16,16,16,16,16, &                         ! band 16
++!                   17,17,17,17,17,17,17,17,17,17,17,17, &       ! band 17
++!                   18,18,18,18,18,18,18,18, &                   ! band 18
++!                   19,19,19,19,19,19,19,19, &                   ! band 19
++!                   20,20,20,20,20,20,20,20,20,20, &             ! band 20
++!                   21,21,21,21,21,21,21,21,21,21, &             ! band 21
++!                   22,22, &                                     ! band 22
++!                   23,23,23,23,23,23,23,23,23,23, &             ! band 23
++!                   24,24,24,24,24,24,24,24, &                   ! band 24
++!                   25,25,25,25,25,25, &                         ! band 25
++!                   26,26,26,26,26,26, &                         ! band 26
++!                   27,27,27,27,27,27,27,27, &                   ! band 27
++!                   28,28,28,28,28,28, &                         ! band 28
++!                   29,29,29,29,29,29,29,29,29,29,29,29 /)       ! band 29
+ 
+ ! Use this set for full 224 quadrature point (g-point) model
+ ! ------- Data statements -------
+-!      ngc(:) = (/ 16,16,16,16,16,16,16,16,16,16,16,16,16,16 /)
+-!      ngs(:) = (/ 16,32,48,64,80,96,112,128,144,160,176,192,208,224 /)
+-!      ngm(:) = (/ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 16
+-!                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 17
+-!                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 18
+-!                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 19
+-!                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 20
+-!                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 21
+-!                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 22
+-!                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 23
+-!                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 24
+-!                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 25
+-!                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 26
+-!                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 27
+-!                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 28
+-!                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 /)    ! band 29
+-!      ngn(:) = (/ 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 16
+-!                  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 17
+-!                  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 18
+-!                  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 19
+-!                  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 20
+-!                  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 21
+-!                  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 22
+-!                  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 23
+-!                  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 24
+-!                  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 25
+-!                  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 26
+-!                  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 27
+-!                  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 28
+-!                  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 /)           ! band 29
+-!      ngb(:) = (/ 16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16, &   ! band 16
+-!                  17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17, &   ! band 17
+-!                  18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18, &   ! band 18
+-!                  19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19, &   ! band 19
+-!                  20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20, &   ! band 20
+-!                  21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21, &   ! band 21
+-!                  22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22, &   ! band 22
+-!                  23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23, &   ! band 23
+-!                  24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24, &   ! band 24
+-!                  25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25, &   ! band 25
+-!                  26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26, &   ! band 26
+-!                  27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27, &   ! band 27
+-!                  28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28, &   ! band 28
+-!                  29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29 /)   ! band 29
++     ngc(:) = (/ 16,16,16,16,16,16,16,16,16,16,16,16,16,16 /)
++     ngs(:) = (/ 16,32,48,64,80,96,112,128,144,160,176,192,208,224 /)
++     ngm(:) = (/ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 16
++                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 17
++                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 18
++                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 19
++                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 20
++                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 21
++                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 22
++                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 23
++                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 24
++                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 25
++                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 26
++                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 27
++                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, &    ! band 28
++                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 /)    ! band 29
++     ngn(:) = (/ 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 16
++                 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 17
++                 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 18
++                 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 19
++                 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 20
++                 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 21
++                 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 22
++                 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 23
++                 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 24
++                 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 25
++                 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 26
++                 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 27
++                 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, &           ! band 28
++                 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 /)           ! band 29
++     ngb(:) = (/ 16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16, &   ! band 16
++                 17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17, &   ! band 17
++                 18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18, &   ! band 18
++                 19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19, &   ! band 19
++                 20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20, &   ! band 20
++                 21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21, &   ! band 21
++                 22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22, &   ! band 22
++                 23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23, &   ! band 23
++                 24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24, &   ! band 24
++                 25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25, &   ! band 25
++                 26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26, &   ! band 26
++                 27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27, &   ! band 27
++                 28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28, &   ! band 28
++                 29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29 /)   ! band 29
+ 
+ 
+       wt(:) =  (/ 0.1527534276_rb, 0.1491729617_rb, 0.1420961469_rb, &
