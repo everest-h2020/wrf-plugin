@@ -6,12 +6,18 @@
 #pragma once
 
 #include <cstdint>
+#include <limits>
 #include <optional>
 
 namespace fxx {
 
 /// Type that stores an index.
 using index_t = std::int64_t;
+
+/// Minimum possible index value.
+static constexpr index_t min_index = std::numeric_limits<index_t>::min();
+/// Maximum possible index value.
+static constexpr index_t max_index = std::numeric_limits<index_t>::max();
 
 /// Performs checked addition of @p lhs and @p rhs .
 ///

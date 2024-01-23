@@ -9,7 +9,7 @@ enum : INTEGER {
     PLUGIN_ERROR = -1
 };
 
-// WRF gas species: "h20", "co2", "o3", "n2o", "co"=0, "ch4", "o2", N/A...
+// WRF gas species: "h2o", "co2", "o3", "n2o", "co"=0, "ch4", "o2", "n2"=0, ...
 
 extern "C" {
 
@@ -39,7 +39,7 @@ INTEGER plugin_rrtmg_sw_init(
 /// @param  [in]        p_lay       Layer pressures [n_layers] (Pa).
 /// @param  [in]        n_d         Dry air mass in column [n_layers]
 /// (molec./cm^2).
-/// @param  [in]        n_prime     Volume mixing ratios of gas contributors
+/// @param  [in]        r_gas       Volume mixing ratios of gas contributors
 /// [n_layers,n_gas] (1).
 /// @param  [out]       tau_gas     Optical depth from gas species
 /// [n_gpt,n_layers] (ln 1).
@@ -52,7 +52,7 @@ void plugin_rrtmg_sw_taumol(
     const REAL *T_lay,
     const REAL *p_lay,
     const REAL *n_d,
-    const REAL *n_prime,
+    const REAL *r_gas,
     REAL *tau_gas,
     REAL *tau_rayl);
 
@@ -61,14 +61,14 @@ void plugin_rrtmg_sw_taumol(
 /// @param              n_layers    Number of model layers (1).
 /// @param              n_gpt       Number of model g-points (1).
 /// @param              n_gas       Number of model gas species (1).
-/// @param  [in]        n_prime     Volume mixing ratios of gas contributors
+/// @param  [in]        r_gas       Volume mixing ratios of gas contributors
 /// [n_layers,n_gas] (1).
 /// @param  [out]       E_solar     Solar source flux [n_gpt] (W/cm^2).
 void plugin_rrtmg_sw_solar_source(
     INTEGER n_layers,
     INTEGER n_gpt,
     INTEGER n_gas,
-    const REAL *n_prime,
+    const REAL *r_gas,
     REAL *E_solar);
 
 /// Initializes the RRTMG longwave plugin.
@@ -124,7 +124,7 @@ void plugin_rrtmg_lw_planck_source(
 /// @param  [in]        p_lay       Layer pressures [n_layers] (Pa).
 /// @param  [in]        n_d         Dry air mass in column [n_layers]
 /// (molec./cm^2).
-/// @param  [in]        n_prime     Volume mixing ratios of gas contributors
+/// @param  [in]        r_gas       Volume mixing ratios of gas contributors
 /// [n_layers,n_gas] (1).
 /// @param  [out]       tau_gas     Optical depth from gas species
 /// [n_gpt,n_layers] (ln 1).
@@ -136,7 +136,7 @@ void plugin_rrtmg_lw_taumol(
     const REAL *T_lay,
     const REAL *p_lay,
     const REAL *n_d,
-    const REAL *n_prime,
+    const REAL *r_gas,
     REAL *tau_gas,
     REAL *a_planck);
 }

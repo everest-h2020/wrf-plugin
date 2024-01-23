@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.20)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 project(wrf-plugin
-    VERSION     0.2.0
+    VERSION     0.3.0
     LANGUAGES   C CXX
 )
 
@@ -22,8 +22,6 @@ add_compile_options(
 
 add_library(plugin_rrtmg SHARED
     src/plugin.cpp
-    src/Constants.cpp
-    src/gas_optics_fpga.cpp
     src/kernels.cpp
 )
 
@@ -31,7 +29,9 @@ target_include_directories(plugin_rrtmg PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(plugin_rrtmg -lnetcdf)
+target_link_libraries(plugin_rrtmg PUBLIC
+    -lnetcdf -lnetcdf_c++4
+)
 
 add_executable(runner
     src/runner.cpp

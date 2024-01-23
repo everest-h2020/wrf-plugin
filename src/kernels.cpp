@@ -1,189 +1,165 @@
-#include "ABI.h"
-#include "fxx/Memory.h"
+#include "rrtmg/kernels.h"
 
+#include <array>
 #include <cmath>
-#include <stdexcept>
+#include <iostream>
+#include <limits>
 
-using namespace fxx;
 using namespace std;
+using namespace rrtmg;
+
+#include "data.inc"
 
 namespace {
 
-struct ReferenceProfiles {
-    //===------------------------------------------------------------------===//
-    // Constructors
-    //===------------------------------------------------------------------===//
+static constexpr REAL C_TINY = numeric_limits<REAL>::min();
 
-    constexpr ReferenceProfiles(
-        REAL T_min,
-        REAL T_delta,
-        REAL p_max,
-        REAL p_log_delta,
-        REAL p_tropo,
-        tensor<REAL, 3> eta_half) noexcept
-            : m_T_min(T_min),
-              m_T_delta(T_delta),
-              m_p_max(p_max),
-              m_p_log_delta(p_log_delta),
-              m_p_tropo(p_tropo),
-              m_eta_half(std::move(eta_half))
-    {
-        // Used as divisors, and therefore may not be 0.
-        assert(m_T_delta != 0);
-        assert(m_p_log_delta != 0);
-    }
-
-    [[nodiscard]] static ReferenceProfiles load(
-        memref<const REAL, 1> T_ref,
-        memref<const REAL, 1> p_ref,
-        REAL p_tropo,
-        memref<const INTEGER, 2> flav_to_abs,
-        memref<const REAL, 3> r_ref);
-
-    //===------------------------------------------------------------------===//
-    // Properties
-    //===------------------------------------------------------------------===//
-
-    [[nodiscard]] constexpr REAL T_min() const noexcept { return m_T_min; }
-    [[nodiscard]] constexpr REAL T_delta() const noexcept { return m_T_delta; }
-    [[nodiscard]] constexpr REAL p_max() const noexcept { return m_p_max; }
-    [[nodiscard]] constexpr REAL p_log_delta() const noexcept
-    {
-        return m_p_log_delta;
-    }
-    [[nodiscard]] constexpr REAL p_tropo() const noexcept { return m_p_tropo; }
-    [[nodiscard]] constexpr const tensor<REAL, 3> &eta_half() const noexcept
-    {
-        return m_eta_half;
-    }
-
-    //===------------------------------------------------------------------===//
-    // Interpolation
-    //===------------------------------------------------------------------===//
-
-    [[nodiscard]] constexpr REAL unmap_T(REAL f_T) const noexcept
-    {
-        return T_min() + T_delta() * f_T;
-    }
-    [[nodiscard]] constexpr REAL unmap_p(REAL f_p) const noexcept
-    {
-        return p_max() * std::exp(p_log_delta() * f_p);
-    }
-
-    [[nodiscard]] constexpr REAL map_T(REAL T) const noexcept
-    {
-        return (T - T_min()) / T_delta();
-    }
-    [[nodiscard]] constexpr REAL map_p(REAL p) const noexcept
-    {
-        return std::log(p / p_max()) / p_log_delta();
-    }
-
-    [[nodiscard]] void interpolate(
-        memref<const REAL, 1> T_lay,
-        memref<const REAL, 1> p_lay,
-        memref<const REAL, 1> n_prime_d,
-        memref<const INTEGER, 2> flav_to_abs,
-        memref<const REAL, 2> r_lay,
-        memref<REAL, 1> T_bar,
-        memref<REAL, 1> p_bar,
-        memref<REAL, 3> eta) const noexcept;
-
-private:
-    REAL m_T_min;
-    REAL m_T_delta;
-    REAL m_p_max;
-    REAL m_p_log_delta;
-    REAL m_p_tropo;
-    tensor<REAL, 3> m_eta_half;
-};
-
-ReferenceProfiles ReferenceProfiles::load(
-    memref<const REAL, 1> T_ref,
-    memref<const REAL, 1> p_ref,
-    REAL p_tropo,
-    memref<const INTEGER, 2> flav_to_abs,
-    memref<const REAL, 3> r_ref)
+static constexpr std::pair<index_t, REAL> int_frac(REAL x)
 {
-    // Recover temperature curve parameters.
-    const auto n_T = T_ref.layout().hrect().sizes()[0];
-    if (n_T <= 1) throw new runtime_error("Empty temperature reference.");
-    const REAL T_min = T_ref(0);
-    const REAL T_delta = (T_ref(n_T - 1) - T_min) / (n_T - 1);
-    if (T_delta == 0) throw new runtime_error("Invalid temperature reference.");
-
-    // Recover pressure curve parameters.
-    const auto n_p = p_ref.layout().hrect().sizes()[0];
-    if (n_p <= 1) throw new runtime_error("Empty pressure reference.");
-    const REAL p_max = p_ref(0);
-    const REAL p_log_delta =
-        (std::log(p_ref(n_p - 1)) - std::log(p_max)) / (n_p - 1);
-    if (T_delta == 0) throw new runtime_error("Invalid pressure reference.");
-
-    // Recover the binary species parameter reference state.
-    const auto n_flav = flav_to_abs.layout().hrect().sizes()[0];
-    tensor<REAL, 3> eta_half(n_flav, 2, n_T);
-    for (index_t i_flav = 0; i_flav < n_flav; ++i_flav)
-        for (index_t i_layer = 0; i_layer < 2; ++i_layer)
-            for (index_t i_temp = 0; i_temp < n_T; ++i_temp) {
-                const auto r_1 = r_ref(i_temp, flav_to_abs(i_flav, 0), i_layer);
-                const auto r_2 = r_ref(i_temp, flav_to_abs(i_flav, 1), i_layer);
-                eta_half(i_flav, i_layer, i_temp) = r_1 / r_2;
-            }
-
-    return ReferenceProfiles(
-        T_min,
-        T_delta,
-        p_max,
-        p_log_delta,
-        p_tropo,
-        std::move(eta_half));
+    REAL int_part;
+    const auto frac = std::modf(x, &int_part);
+    return std::make_pair(static_cast<index_t>(int_part), frac);
 }
 
-void ReferenceProfiles::interpolate(
-    memref<const REAL, 1> T_lay,
-    memref<const REAL, 1> p_lay,
-    memref<const REAL, 1> n_prime_d,
-    memref<const INTEGER, 2> flav_to_abs,
-    memref<const REAL, 2> r_lay,
-    memref<REAL, 1> T_bar,
-    memref<REAL, 1> p_bar,
-    memref<REAL, 3> eta) const noexcept
+} // namespace
+
+namespace rrtmg {
+
+void taumol_sw(
+    const ndarray<REAL, N_CELL> &T,
+    const ndarray<REAL, N_CELL> &p,
+    const ndarray<REAL, N_CELL> &n_d,
+    const ndarray<REAL, N_GAS, N_CELL> &r_gas,
+    ndarray<REAL, N_BND, N_CELL, N_GPB> &tau_g,
+    ndarray<REAL, N_BND, N_CELL, N_GPB> &tau_r)
 {
-    constexpr REAL tiny = std::numeric_limits<REAL>::epsilon() * 2;
+    ndarray<REAL, N_CELL> p_prime;
+    for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
+        p_prime[i_cell] =
+            (std::log(p[i_cell]) - C_LOG_MAX_P_REF) / C_DELTA_LOG_P_REF;
+    }
 
-    // Shape checking.
-    const auto n_lay = T_lay.layout().hrect().sizes()[0];
-    assert(p_lay.layout().hrect().sizes()[0] == n_lay);
-    assert(n_prime_d.layout().hrect().sizes()[0] == n_lay);
-    assert(r_lay.layout().hrect().sizes()[0] == n_lay);
-    assert(T_bar.layout().hrect().sizes()[0] == n_lay);
-    assert(p_bar.layout().hrect().sizes()[0] == n_lay);
-    const auto n_flav = eta_half().layout().hrect().sizes()[0];
-    assert(flav_to_abs.layout().hrect().sizes()[0] == n_flav);
-    assert(flav_to_abs.layout().hrect().sizes()[1] == 2);
-    assert(eta.layout().hrect().sizes()[0] == n_lay);
-    assert(eta.layout().hrect().sizes()[1] == n_flav);
-    assert(eta.layout().hrect().sizes()[2] == 2);
+    ndarray<REAL, N_CELL> T_prime;
+    for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell)
+        T_prime[i_cell] = (T[i_cell] - C_MIN_T_REF) / C_DELTA_T_REF;
 
-    for (index_t i_lay = 0; i_lay < n_lay; ++i_lay) {
-        const auto f_T = T_bar(i_lay) = map_T(T_lay(i_lay));
-        const auto i_T = static_cast<index_t>(std::floor(f_T));
-        const auto p = p_lay(i_lay);
-        const auto is_strato = p < p_tropo();
-        p_bar(i_lay) = map_p(p);
+    index_t i_minor = 0;
+    for (index_t i_bnd = 0; i_bnd < C_N_BND; ++i_bnd) {
+        ndarray<REAL, N_CELL, 2> eta, r_mix;
+        for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
+            const index_t i_strato =
+                (p_prime[i_cell] > C_P_PRIME_TROPO) ? 1 : 0;
+            const auto i_flav = C_BND_TO_FLAV[i_strato][i_bnd];
+            const auto i_g_0 = C_FLAV_TO_ABS[i_flav][0];
+            const auto i_g_1 = C_FLAV_TO_ABS[i_flav][1];
 
-        for (index_t i_flav = 0; i_flav < n_flav; ++i_flav) {
-            const auto r_1 = r_lay(i_lay, flav_to_abs(i_flav, 0));
-            const auto r_2 = r_lay(i_lay, flav_to_abs(i_flav, 1));
-            for (index_t i_temp = 0; i_temp < 2; ++i_temp) {
-                const auto r_eta = eta_half()(i_flav, is_strato, i_temp);
-                const auto r_mix = r_1 + r_eta * r_2;
-                eta(i_lay, i_flav, i_temp) =
-                    (r_mix >= tiny ? (r_1 / r_mix) : 0.5) * (n_eta - 1);
+            const auto r_g_0 = i_g_0 >= 0 ? r_gas[i_g_0][i_cell] : REAL(1);
+            const auto r_g_1 = i_g_1 >= 0 ? r_gas[i_g_1][i_cell] : REAL(1);
+            const auto [j_T, _] = int_frac(T_prime[i_cell]);
+
+            for (index_t dT = 0; dT < 2; ++dT) {
+                const auto r_eta_half = C_ETA_HALF[i_strato][i_flav][j_T + dT];
+                const auto f_mix = r_g_0 + r_eta_half * r_g_1;
+                r_mix[i_cell][dT] = f_mix;
+                const auto alpha = f_mix > C_TINY ? (r_g_0 / f_mix) : REAL(0.5);
+                eta[i_cell][dT] = alpha * (C_N_ETA - 1);
+            }
+        }
+
+        for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
+            const index_t i_strato =
+                (p_prime[i_cell] > C_P_PRIME_TROPO) ? 1 : 0;
+            const auto [j_T, f_T] = int_frac(T_prime[i_cell]);
+            const auto [j_p, f_p] = int_frac(p_prime[i_cell]);
+
+            for (index_t i_gpb = 0; i_gpb < N_GPB; ++i_gpb)
+                tau_g[i_bnd][i_cell][i_gpb] = REAL(0);
+
+            for (index_t dT = 0; dT < 2; ++dT) {
+                const auto a_T = dT == 1 ? f_T : REAL(1) - f_T;
+                for (index_t deta = 0; deta < 2; ++deta) {
+                    const auto [j_eta, f_eta] = int_frac(eta[i_cell][dT]);
+                    const auto a_eta = deta == 1 ? f_eta : REAL(1) - f_eta;
+                    const auto a_minor =
+                        a_T * a_eta * r_mix[i_cell][dT] * n_d[i_cell];
+                    for (index_t dp = 0; dp < 2; ++dp) {
+                        const auto a_p = dp == 1 ? f_p : REAL(1) - f_p;
+                        for (index_t i_gpb = 0; i_gpb < N_GPB; ++i_gpb) {
+                            tau_g[i_bnd][i_cell][i_gpb] +=
+                                C_K_MAJOR[i_bnd][j_T + dT][j_eta + deta]
+                                         [j_p + dp + i_strato][i_gpb]
+                                * a_minor * a_p;
+                        }
+                    }
+                }
+            }
+        }
+
+        for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
+            const index_t i_strato =
+                (p_prime[i_cell] > C_P_PRIME_TROPO) ? 1 : 0;
+            const auto [j_T, f_T] = int_frac(T_prime[i_cell]);
+            const auto a_wet = n_d[i_cell] * (REAL(1) + r_gas[0][i_cell]);
+
+            for (index_t i_gpb = 0; i_gpb < N_GPB; ++i_gpb)
+                tau_r[i_bnd][i_cell][i_gpb] = REAL(0);
+
+            for (index_t dT = 0; dT < 2; ++dT) {
+                const auto a_T = dT == 1 ? f_T : REAL(1) - f_T;
+                for (index_t deta = 0; deta < 2; ++deta) {
+                    const auto [j_eta, f_eta] = int_frac(eta[i_cell][dT]);
+                    const auto a_eta = deta == 1 ? f_eta : REAL(1) - f_eta;
+                    for (index_t i_gpb = 0; i_gpb < N_GPB; ++i_gpb) {
+                        tau_r[i_bnd][i_cell][i_gpb] +=
+                            C_K_RAYLEIGH[i_bnd][i_strato][j_T + dT]
+                                        [j_eta + deta][i_gpb]
+                            * a_T * a_eta * a_wet;
+                    }
+                }
+            }
+        }
+
+        const auto N_MPB =
+            C_MINOR_PER_BND[i_bnd][0] + C_MINOR_PER_BND[i_bnd][1];
+        for (index_t i_mpb = 0; i_mpb < N_MPB; ++i_mpb, ++i_minor) {
+            const auto i_strato = (i_mpb >= C_MINOR_PER_BND[i_bnd][0]) ? 1 : 0;
+            const auto i_abs = C_MINOR_TO_ABS[i_minor];
+            const auto scale_by = C_MINOR_SCALE_BY[i_minor];
+
+            for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
+                if ((p_prime[i_cell] > C_P_PRIME_TROPO) != i_strato) continue;
+
+                auto r_abs = r_gas[i_abs][i_cell] * n_d[i_cell];
+                if (scale_by != 0) {
+                    r_abs *= REAL(0.01) * p[i_cell] / T[i_cell];
+                    const auto i_by = std::abs(scale_by) - 2;
+                    if (i_by >= 0) {
+                        const auto dry_fact = REAL(1) / (1 + r_gas[0][i_cell]);
+                        const auto gas_fact = r_gas[i_by][i_cell] * dry_fact;
+                        r_abs *= scale_by < 0 ? (REAL(1) - gas_fact) : gas_fact;
+                    }
+                }
+
+                const auto [j_T, f_T] = int_frac(T_prime[i_cell]);
+
+                for (index_t dT = 0; dT < 2; ++dT) {
+                    const auto a_T = dT == 1 ? f_T : REAL(1) - f_T;
+                    for (index_t deta = 0; deta < 2; ++deta) {
+                        const auto [j_eta, f_eta] = int_frac(eta[i_cell][dT]);
+                        const auto a_eta = deta == 1 ? f_eta : REAL(1) - f_eta;
+                        const auto alpha = a_T * a_eta * r_abs;
+
+                        for (index_t i_gpb = 0; i_gpb < N_GPB; ++i_gpb) {
+                            tau_g[i_bnd][i_cell][i_gpb] +=
+                                C_K_MINOR[i_minor][j_T + dT][j_eta + deta]
+                                         [i_gpb]
+                                * alpha;
+                        }
+                    }
+                }
             }
         }
     }
 }
 
-} // namespace
+} // namespace rrtmg

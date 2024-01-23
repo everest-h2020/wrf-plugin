@@ -49,17 +49,18 @@ struct tensor : tensor_storage<T, Order, Allocator>,
 
     explicit constexpr tensor(
         const allocator_type &alloc,
-        std::convertible_to<
-            index_t> auto... sizes) requires(sizeof...(sizes) == Order)
+        std::convertible_to<index_t> auto... sizes)
+        requires(sizeof...(sizes) == Order)
             : tensor(*layout_type::innermost(sizes...), alloc)
     {}
 
-    explicit constexpr tensor(
-        std::convertible_to<
-            index_t> auto... sizes) requires(sizeof...(sizes) == Order)
+    explicit constexpr tensor(std::convertible_to<index_t> auto... sizes)
+        requires(sizeof...(sizes) == Order)
             : storage_type(),
               m_layout(*layout_type::innermost(sizes...))
-    {}
+    {
+        storage_type::resize(layout().hrect().volume().value());
+    }
 
     /*implicit*/ constexpr tensor(const tensor &copy)
             : storage_type(copy),
@@ -68,7 +69,8 @@ struct tensor : tensor_storage<T, Order, Allocator>,
 
     constexpr tensor &operator=(const tensor &copy)
     {
-        *this = static_cast<const storage_type &>(copy);
+        static_cast<storage_type &>(*this) =
+            static_cast<const storage_type &>(copy);
         m_layout = copy.layout();
         return *this;
     }
@@ -80,7 +82,7 @@ struct tensor : tensor_storage<T, Order, Allocator>,
 
     constexpr tensor &operator=(tensor &&move)
     {
-        *this = static_cast<storage_type &&>(move);
+        static_cast<storage_type &>(*this) = static_cast<storage_type &&>(move);
         m_layout = std::exchange(move.m_layout, layout_type{});
         return *this;
     }

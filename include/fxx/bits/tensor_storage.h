@@ -144,7 +144,7 @@ struct tensor_storage {
             discard();
             swap(m_data, move.m_data);
             swap(m_size, move.m_size);
-            return;
+            return *this;
         }
 
         if (size() == move.size()) {
@@ -152,7 +152,7 @@ struct tensor_storage {
                  lhs != data() + size();
                  ++lhs)
                 *lhs = std::move(*rhs);
-            return;
+            return *this;
         }
 
         discard();
@@ -165,6 +165,7 @@ struct tensor_storage {
                 lhs,
                 get_allocator(),
                 std::move(*rhs));
+        return *this;
     }
 
     friend constexpr void
@@ -207,6 +208,7 @@ struct tensor_storage {
         return size() == size_type();
     }
 
+protected:
     //===------------------------------------------------------------------===//
     // Resizing
     //===------------------------------------------------------------------===//
