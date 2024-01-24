@@ -16,13 +16,6 @@ source      = SolarSource(params)
 
 output      = io.open('./data/rrtmgp-data-sw-g224-2018-12-04.baked.inc', 'w')
 
-def bake_type(element_type: str, shape=None):
-    if shape is None or len(shape) == 0:
-        output.write(element_type)
-        return
-
-    output.write(f'ndarray<{element_type}, {", ".join(map(lambda x: str(x), shape))}>')
-
 def bake_value(slice, is_integer=False):
     def fmt_value(val):
         return f'{val:d}' if is_integer else f'{val:G}'
@@ -45,9 +38,10 @@ ctypes = {
 
 def bake_const(var, name):
     var = np.array(var)
-    output.write('static constexpr ')
-    bake_type(ctypes[var.dtype.name], var.shape)
-    output.write(f' {name} = ')
+    output.write(f'static constexpr {ctypes[var.dtype.name]}')
+    extents = "".join(map(lambda x: f'[{x}]', var.shape))
+    output.write(f' {name}{extents}')
+    output.write(' = ')
     bake_value(var, np.issubdtype(var.dtype, np.integer))
     output.write(';\n')
 
@@ -116,9 +110,9 @@ mabsi_lower, mabsi_upper = filter_mabsi(0), filter_mabsi(1)
 C_N_MINOR = np.array((mabsi_lower.shape[0], mabsi_upper.shape[0]))
 bake_const(C_N_MINOR, 'C_N_MINOR')
 
-C_MINOR_PER_BND = np.zeros((spectra.N_bnd, 2))
-C_MINOR_TO_ABS = np.zeros((np.sum(C_N_MINOR)))
-C_MINOR_SCALE_BY = np.zeros((np.sum(C_N_MINOR)))
+C_MINOR_PER_BND = np.zeros((spectra.N_bnd, 2), dtype=np.int64)
+C_MINOR_TO_ABS = np.zeros((np.sum(C_N_MINOR)), dtype=np.int64)
+C_MINOR_SCALE_BY = np.zeros((np.sum(C_N_MINOR)), dtype=np.int64)
 C_K_MINOR = np.zeros((np.sum(C_N_MINOR), profile.N_T, profile.N_eta, N_GPB))
 
 i_minor = 0
