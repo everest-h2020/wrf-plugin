@@ -29,7 +29,6 @@ void load_test_data(string_view filename)
     n_d = tensor<REAL, 1>(N_lay);
     r_abs = tensor<REAL, 2>(N_lay, N_gas);
 
-    std::cerr << T_lay.size() << "\n";
     file.getVar("tlay")
         .getVar({0, 0}, {N_lay, 1}, {1, 1}, {1, 0}, T_lay.data());
     file.getVar("play").getVar({0, 0}, {N_lay, 1}, p_lay.data());
@@ -58,7 +57,8 @@ int main(int, const char **)
     const auto N_gas = r_abs.layout().hrect().sizes()[1];
     const auto cp_d = 1.004500e+03;
 
-    plugin_rrtmg_sw_init(1, N_lay, N_gpt, N_gas, cp_d);
+    if (plugin_rrtmg_sw_init(1, N_lay, N_gpt, N_gas, cp_d) != PLUGIN_OK)
+        return EXIT_FAILURE;
 
     tensor<REAL, 2> tau_gas(N_gpt, N_lay);
     tensor<REAL, 2> tau_rayl(N_gpt, N_lay);

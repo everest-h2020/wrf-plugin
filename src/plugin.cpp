@@ -1,10 +1,13 @@
 #include "rrtmg.h"
 #include "rrtmg/kernels.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <cstdlib>
 #include <iomanip>
 #include <iostream>
+#include <string_view>
 
 using namespace std;
 using namespace rrtmg;
@@ -13,7 +16,7 @@ using namespace rrtmg;
 
 namespace {
 
-void dump_atmosphere(
+[[maybe_unused]] void dump_atmosphere(
     size_t n_layers,
     size_t n_gas,
     const REAL *T_lay,
@@ -58,16 +61,26 @@ void dump_atmosphere(
     // clang-format on
 }
 
+static bool is_plugin_disabled()
+{
+    if (const auto env_var = getenv("PLUGIN_RRTMG")) {
+        std::string_view value(env_var);
+        return value == "0";
+    }
+
+    return false;
+}
+
 } // namespace
 
 extern "C" {
 
 INTEGER plugin_rrtmg_sw_init(
     INTEGER is_setup,
-    INTEGER n_layers,
-    INTEGER n_gpt,
-    INTEGER n_gas,
-    REAL cp_d)
+    [[maybe_unused]] INTEGER n_layers,
+    [[maybe_unused]] INTEGER n_gpt,
+    [[maybe_unused]] INTEGER n_gas,
+    [[maybe_unused]] REAL cp_d)
 {
     if (is_setup) {
 #ifndef NDEBUG
@@ -78,12 +91,12 @@ INTEGER plugin_rrtmg_sw_init(
 #endif
     }
 
-    return PLUGIN_OK;
+    return is_plugin_disabled() ? PLUGIN_ERROR : PLUGIN_OK;
 }
 
 void plugin_rrtmg_sw_taumol(
     INTEGER n_layers,
-    INTEGER n_gpt,
+    [[maybe_unused]] INTEGER n_gpt,
     INTEGER n_gas,
     const REAL *T_lay,
     const REAL *p_lay,
@@ -115,10 +128,11 @@ void plugin_rrtmg_sw_taumol(
         taumol_sw(T_lay, p_lay, n_d, r_gas_part, tau_g_part, tau_r_part);
 
         // Copy taus to result array.
+        const auto n_cell = min(n_layers - i_lay, N_CELL);
         index_t i_gpt = 0;
         for (index_t i_bnd = 0; i_bnd < C_N_BND; ++i_bnd) {
             for (index_t i_gpb = 0; i_gpb < C_BND_WIDTH[i_bnd]; ++i_gpb) {
-                for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
+                for (index_t i_cell = 0; i_cell < n_cell; ++i_cell) {
                     tau_gas[i_gpt * n_layers + i_lay + i_cell] =
                         tau_g_part[i_bnd][i_cell][i_gpb];
                     tau_rayl[i_gpt * n_layers + i_lay + i_cell] =
@@ -139,7 +153,7 @@ void plugin_rrtmg_sw_taumol(
 
 void plugin_rrtmg_sw_solar_source(
     INTEGER,
-    INTEGER n_gpt,
+    [[maybe_unused]] INTEGER n_gpt,
     INTEGER,
     const REAL *,
     REAL *E_solar)
@@ -153,10 +167,10 @@ void plugin_rrtmg_sw_solar_source(
 
 INTEGER plugin_rrtmg_lw_init(
     INTEGER is_setup,
-    INTEGER n_layers,
-    INTEGER n_gpt,
-    INTEGER n_gas,
-    REAL cp_d)
+    [[maybe_unused]] INTEGER n_layers,
+    [[maybe_unused]] INTEGER n_gpt,
+    [[maybe_unused]] INTEGER n_gas,
+    [[maybe_unused]] REAL cp_d)
 {
     if (is_setup) {
 #ifndef NDEBUG
@@ -193,11 +207,11 @@ void plugin_rrtmg_lw_planck_source(
 void plugin_rrtmg_lw_taumol(
     INTEGER n_layers,
     INTEGER n_gpt,
-    INTEGER n_gas,
-    const REAL *T_lay,
-    const REAL *p_lay,
-    const REAL *n_d,
-    const REAL *r_gas,
+    [[maybe_unused]] INTEGER n_gas,
+    [[maybe_unused]] const REAL *T_lay,
+    [[maybe_unused]] const REAL *p_lay,
+    [[maybe_unused]] const REAL *n_d,
+    [[maybe_unused]] const REAL *r_gas,
     REAL *tau_gas,
     REAL *a_planck)
 {
