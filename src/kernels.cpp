@@ -26,26 +26,26 @@ static constexpr std::pair<index_t, REAL> int_frac(REAL x)
 namespace rrtmg {
 
 void taumol_sw(
-    const ndarray<REAL, N_CELL> &T,
-    const ndarray<REAL, N_CELL> &p,
-    const ndarray<REAL, N_CELL> &n_d,
-    const ndarray<REAL, N_GAS, N_CELL> &r_gas,
-    ndarray<REAL, N_BND, N_CELL, N_GPB> &tau_g,
-    ndarray<REAL, N_BND, N_CELL, N_GPB> &tau_r)
+    const REAL T[N_CELL],
+    const REAL p[N_CELL],
+    const REAL n_d[N_CELL],
+    const REAL r_gas[N_GAS][N_CELL],
+    REAL tau_g[N_BND][N_CELL][N_GPB],
+    REAL tau_r[N_BND][N_CELL][N_GPB])
 {
-    ndarray<REAL, N_CELL> p_prime;
+    REAL p_prime[N_CELL];
     for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
         p_prime[i_cell] =
             (std::log(p[i_cell]) - C_LOG_MAX_P_REF) / C_DELTA_LOG_P_REF;
     }
 
-    ndarray<REAL, N_CELL> T_prime;
+    REAL T_prime[N_CELL];
     for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell)
         T_prime[i_cell] = (T[i_cell] - C_MIN_T_REF) / C_DELTA_T_REF;
 
     index_t i_minor = 0;
     for (index_t i_bnd = 0; i_bnd < C_N_BND; ++i_bnd) {
-        ndarray<REAL, N_CELL, 2> eta, r_mix;
+        REAL eta[N_CELL][2], r_mix[N_CELL][2];
         for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
             const index_t i_strato =
                 (p_prime[i_cell] > C_P_PRIME_TROPO) ? 1 : 0;

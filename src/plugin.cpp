@@ -104,21 +104,15 @@ void plugin_rrtmg_sw_taumol(
     index_t i_lay = 0;
     while (i_lay < n_layers) {
         // Copy to minimized gas VMR array.
-        ndarray<REAL, N_GAS, N_CELL> r_gas_part;
+        REAL r_gas_part[N_GAS][N_CELL];
         for (size_t i_cell = 0; i_cell < N_CELL; ++i_cell)
             for (size_t i_gas = 0; i_gas < N_GAS; ++i_gas)
                 r_gas_part[i_gas][i_cell] = r_gas[i_cell * n_gas + i_gas];
 
         // Output to regular-sized tau arrays.
-        ndarray<REAL, N_BND, N_CELL, N_GPB> tau_g_part;
-        ndarray<REAL, N_BND, N_CELL, N_GPB> tau_r_part;
-        taumol_sw(
-            *reinterpret_cast<const ndarray<REAL, N_CELL> *>(T_lay),
-            *reinterpret_cast<const ndarray<REAL, N_CELL> *>(p_lay),
-            *reinterpret_cast<const ndarray<REAL, N_CELL> *>(n_d),
-            r_gas_part,
-            tau_g_part,
-            tau_r_part);
+        REAL tau_g_part[N_BND][N_CELL][N_GPB];
+        REAL tau_r_part[N_BND][N_CELL][N_GPB];
+        taumol_sw(T_lay, p_lay, n_d, r_gas_part, tau_g_part, tau_r_part);
 
         // Copy taus to result array.
         index_t i_gpt = 0;
