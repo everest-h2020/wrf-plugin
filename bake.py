@@ -143,6 +143,9 @@ for i_bnd in range(spectra.N_bnd):
         emit_minor(i_minor, 1, i_mabsi)
         i_minor = i_minor + 1
 
+C_MINOR_START = np.zeros((spectra.N_bnd), dtype=np.int64)
+C_MINOR_START[1:] = np.cumsum(np.sum(C_MINOR_PER_BND, axis=1))[:-1]
+bake_const(C_MINOR_START, 'C_MINOR_START')
 bake_const(C_MINOR_PER_BND, 'C_MINOR_PER_BND')
 bake_const(C_MINOR_TO_ABS, 'C_MINOR_TO_ABS')
 bake_const(C_MINOR_SCALE_BY, 'C_MINOR_SCALE_BY')

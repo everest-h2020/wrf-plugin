@@ -43,7 +43,6 @@ void taumol_sw(
     for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell)
         T_prime[i_cell] = (T[i_cell] - C_MIN_T_REF) / C_DELTA_T_REF;
 
-    index_t i_minor = 0;
     for (index_t i_bnd = 0; i_bnd < C_N_BND; ++i_bnd) {
         REAL eta[N_CELL][2], r_mix[N_CELL][2];
         for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
@@ -121,7 +120,8 @@ void taumol_sw(
 
         const auto N_MPB =
             C_MINOR_PER_BND[i_bnd][0] + C_MINOR_PER_BND[i_bnd][1];
-        for (index_t i_mpb = 0; i_mpb < N_MPB; ++i_mpb, ++i_minor) {
+        for (index_t i_mpb = 0; i_mpb < N_MPB; ++i_mpb) {
+            const auto i_minor = C_MINOR_START[i_bnd] + i_mpb;
             const auto i_strato = (i_mpb >= C_MINOR_PER_BND[i_bnd][0]) ? 1 : 0;
             const auto i_abs = C_MINOR_TO_ABS[i_minor];
             const auto scale_by = C_MINOR_SCALE_BY[i_minor];
