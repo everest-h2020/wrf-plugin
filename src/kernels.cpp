@@ -10,9 +10,13 @@ using namespace rrtmg;
 
 #include "data.inc"
 
-namespace {
+namespace rrtmg {
 
 static constexpr REAL C_TINY = numeric_limits<REAL>::min();
+
+} // namespace rrtmg
+
+namespace {
 
 static constexpr std::pair<index_t, REAL> int_frac(REAL x)
 {
@@ -23,9 +27,9 @@ static constexpr std::pair<index_t, REAL> int_frac(REAL x)
 
 } // namespace
 
-namespace rrtmg {
+extern "C" {
 
-void taumol_sw(
+void plugin_rrtmg_taumol_sw(
     const REAL T[N_CELL],
     const REAL p[N_CELL],
     const REAL n_d[N_CELL],

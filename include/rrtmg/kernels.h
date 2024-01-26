@@ -3,7 +3,6 @@
 #include "ABI.h"
 
 #include <array>
-#include <concepts>
 #include <cstddef>
 
 namespace rrtmg {
@@ -15,12 +14,16 @@ static constexpr index_t N_GAS = 7;
 static constexpr index_t N_GPB = 16;
 static constexpr index_t N_BND = 16;
 
-void taumol_sw(
-    const REAL T[N_CELL],
-    const REAL p[N_CELL],
-    const REAL n_d[N_CELL],
-    const REAL r_gas[N_GAS][N_CELL],
-    REAL tau_g[N_BND][N_CELL][N_GPB],
-    REAL tau_r[N_BND][N_CELL][N_GPB]);
-
 } // namespace rrtmg
+
+extern "C" {
+
+void plugin_rrtmg_taumol_sw(
+    const REAL T[rrtmg::N_CELL],
+    const REAL p[rrtmg::N_CELL],
+    const REAL n_d[rrtmg::N_CELL],
+    const REAL r_gas[rrtmg::N_GAS][rrtmg::N_CELL],
+    REAL tau_g[rrtmg::N_BND][rrtmg::N_CELL][rrtmg::N_GPB],
+    REAL tau_r[rrtmg::N_BND][rrtmg::N_CELL][rrtmg::N_GPB]);
+
+} // extern "C"

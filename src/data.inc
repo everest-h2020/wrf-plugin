@@ -1,3 +1,5 @@
+#pragma once
+
 namespace rrtmg {
 
 #pragma GCC diagnostic push

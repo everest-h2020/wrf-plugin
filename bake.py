@@ -57,6 +57,7 @@ bake_const(profile.p_log_delta, 'C_DELTA_LOG_P_REF')
 
 C_P_PRIME_TROPO = (np.log(profile.p_tropo) - profile.p_log_max) / profile.p_log_delta
 bake_const(C_P_PRIME_TROPO, 'C_P_PRIME_TROPO')
+bake_const(profile.p_tropo, 'C_P_TROPO')
 
 bake_const(profile.N_eta, 'C_N_ETA')
 C_ETA_HALF = np.transpose(profile.eta_half, (0, 2, 1));

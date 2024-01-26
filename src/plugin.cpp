@@ -13,7 +13,6 @@ using namespace std;
 using namespace rrtmg;
 
 #include "data.inc"
-
 namespace {
 
 [[maybe_unused]] void dump_atmosphere(
@@ -125,7 +124,13 @@ void plugin_rrtmg_sw_taumol(
         // Output to regular-sized tau arrays.
         REAL tau_g_part[N_BND][N_CELL][N_GPB];
         REAL tau_r_part[N_BND][N_CELL][N_GPB];
-        taumol_sw(T_lay, p_lay, n_d, r_gas_part, tau_g_part, tau_r_part);
+        plugin_rrtmg_taumol_sw(
+            T_lay,
+            p_lay,
+            n_d,
+            r_gas_part,
+            tau_g_part,
+            tau_r_part);
 
         // Copy taus to result array.
         const auto n_cell = min(n_layers - i_lay, N_CELL);
