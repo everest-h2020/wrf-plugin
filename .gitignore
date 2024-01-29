@@ -2,6 +2,7 @@ build/
 debug/
 .vscode/
 .venv/
+hls_project/
 
 __pycache__
 
