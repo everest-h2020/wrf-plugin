@@ -23,10 +23,8 @@ static void int_frac(REAL x, index_t &j, REAL &f)
     j = static_cast<index_t>(int_part);
 }
 
-static void compute_T_prime(
-    const REAL T[N_CELL],
-    index_t j_T[N_CELL],
-    REAL f_T[N_CELL])
+static void
+compute_T_prime(const REAL T[N_CELL], index_t j_T[N_CELL], REAL f_T[N_CELL])
 {
     for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
 #pragma HLS pipeline II = 1
@@ -50,7 +48,8 @@ static void compute_p_prime(
     }
 }
 
-static void compute_k(const REAL T[N_CELL], const REAL p[N_CELL], REAL k[N_CELL])
+static void
+compute_k(const REAL T[N_CELL], const REAL p[N_CELL], REAL k[N_CELL])
 {
     for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
 #pragma HLS pipeline II = 1
@@ -267,11 +266,8 @@ static void tau_minor_bnd(
 }
 
 template<class T>
-static void bcast3_CELL(
-    const T in[N_CELL],
-    T out0[N_CELL],
-    T out1[N_CELL],
-    T out2[N_CELL])
+static void
+bcast3_CELL(const T in[N_CELL], T out0[N_CELL], T out1[N_CELL], T out2[N_CELL])
 {
     for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
         out0[i_cell] = in[i_cell];
@@ -462,7 +458,7 @@ static void tau_df(
 
 extern "C" {
 
-void taumol_sw(
+void taumol_sw_top(
     const REAL T[N_CELL],
     const REAL p[N_CELL],
     const REAL n_d[N_CELL],
@@ -494,4 +490,14 @@ void taumol_sw(
     tau_df(j_T, f_T, j_strato, j_p, f_p, k, n_d, r_gas, k_major, tau_g, tau_r);
 }
 
+void plugin_rrtmg_taumol_sw(
+    const REAL T[N_CELL],
+    const REAL p[N_CELL],
+    const REAL n_d[N_CELL],
+    const REAL r_gas[N_GAS][N_CELL],
+    REAL tau_g[N_BND][N_CELL][N_GPB],
+    REAL tau_r[N_BND][N_CELL][N_GPB])
+{
+    taumol_sw_top(T, p, n_d, r_gas, C_K_MAJOR, tau_g, tau_r);
+}
 }
