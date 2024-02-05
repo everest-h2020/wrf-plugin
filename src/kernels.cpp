@@ -38,13 +38,13 @@ void plugin_rrtmg_taumol_sw(
     for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
         const auto prime =
             (std::log(p[i_cell]) - C_LOG_MAX_P_REF) / C_DELTA_LOG_P_REF;
-        p_prime[i_cell] = std::clamp(REAL(0), prime, REAL(58));
+        p_prime[i_cell] = std::clamp(REAL(0), prime, REAL(C_N_P_REF - 2));
     }
 
     REAL T_prime[N_CELL];
     for (index_t i_cell = 0; i_cell < N_CELL; ++i_cell) {
         const auto prime = (T[i_cell] - C_MIN_T_REF) / C_DELTA_T_REF;
-        T_prime[i_cell] = std::clamp(REAL(0), prime, REAL(13));
+        T_prime[i_cell] = std::clamp(REAL(0), prime, REAL(C_N_T_REF - 2));
     }
 
     for (index_t i_bnd = 0; i_bnd < C_N_BND; ++i_bnd) {
@@ -65,8 +65,10 @@ void plugin_rrtmg_taumol_sw(
                 const auto f_mix = r_g_0 + r_eta_half * r_g_1;
                 r_mix[i_cell][dT] = f_mix;
                 const auto alpha = f_mix > C_TINY ? (r_g_0 / f_mix) : REAL(0.5);
-                eta[i_cell][dT] =
-                    std::clamp(REAL(0), alpha * (C_N_ETA - 1), REAL(8));
+                eta[i_cell][dT] = std::clamp(
+                    REAL(0),
+                    alpha * (C_N_ETA - 1),
+                    REAL(C_N_ETA - 2));
             }
         }
 
