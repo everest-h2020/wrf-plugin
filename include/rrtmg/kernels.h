@@ -9,7 +9,7 @@ namespace rrtmg {
 
 using index_t = std::ptrdiff_t;
 
-static constexpr index_t N_CELL = 60;
+static constexpr index_t N_CELL = 15;
 static constexpr index_t N_GAS = 7;
 static constexpr index_t N_GPB = 16;
 static constexpr index_t N_BND = 16;

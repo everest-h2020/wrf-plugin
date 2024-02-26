@@ -1,3 +1,4 @@
+#include "fxx/Memory.h"
 #include "rrtmg.h"
 #include "rrtmg/kernels.h"
 
@@ -8,11 +9,13 @@
 #include <iomanip>
 #include <iostream>
 #include <string_view>
+#include <vector>
 
 using namespace std;
 using namespace rrtmg;
 
 #include "data.inc"
+
 namespace {
 
 [[maybe_unused]] void dump_atmosphere(
@@ -109,50 +112,75 @@ void plugin_rrtmg_sw_taumol(
     dump_atmosphere(n_layers, n_gas, T_lay, p_lay, n_d, r_gas);
 #endif
 
-    assert(n_layers <= static_cast<index_t>(N_CELL));
+    assert(n_layers <= 60);
     assert(n_gpt == C_N_GPT);
     assert(n_gas >= static_cast<index_t>(N_GAS));
 
+    fxx::tensor<REAL, 3> r_gas_T(4, N_GAS, N_CELL);
+    for (index_t i_cell = 0; i_cell < n_layers; ++i_cell)
+        for (size_t i_gas = 0; i_gas < N_GAS; ++i_gas)
+            r_gas_T(i_cell / N_CELL, i_gas, i_cell % N_CELL) =
+                r_gas[i_cell * n_gas + i_gas];
+
+    fxx::tensor<REAL, 4> tau_g_T(4, N_BND, N_CELL, N_GPB);
+    fxx::tensor<REAL, 4> tau_r_T(4, N_BND, N_CELL, N_GPB);
+
+    using CREALP = const REAL *;
+    using REALP = REAL *;
+
+    CREALP T_lay_batch[4];
+    CREALP p_lay_batch[4];
+    CREALP n_d_batch[4];
+    CREALP r_gas_batch[4];
+    REALP tau_g_batch[4];
+    REALP tau_r_batch[4];
+
+    index_t i_batch = 0;
     index_t i_lay = 0;
     while (i_lay < n_layers) {
-        // Copy to minimized gas VMR array.
-        REAL r_gas_part[N_GAS][N_CELL];
-        for (size_t i_cell = 0; i_cell < N_CELL; ++i_cell)
-            for (size_t i_gas = 0; i_gas < N_GAS; ++i_gas)
-                r_gas_part[i_gas][i_cell] = r_gas[i_cell * n_gas + i_gas];
-
-        // Output to regular-sized tau arrays.
-        REAL tau_g_part[N_BND][N_CELL][N_GPB];
-        REAL tau_r_part[N_BND][N_CELL][N_GPB];
-        plugin_rrtmg_taumol_sw(
-            T_lay,
-            p_lay,
-            n_d,
-            r_gas_part,
-            tau_g_part,
-            tau_r_part);
-
-        // Copy taus to result array.
-        const auto n_cell = min(n_layers - i_lay, N_CELL);
-        index_t i_gpt = 0;
-        for (index_t i_bnd = 0; i_bnd < C_N_BND; ++i_bnd) {
-            for (index_t i_gpb = 0; i_gpb < C_BND_WIDTH[i_bnd]; ++i_gpb) {
-                for (index_t i_cell = 0; i_cell < n_cell; ++i_cell) {
-                    tau_gas[i_gpt * n_layers + i_lay + i_cell] =
-                        tau_g_part[i_bnd][i_cell][i_gpb];
-                    tau_rayl[i_gpt * n_layers + i_lay + i_cell] =
-                        tau_r_part[i_bnd][i_cell][i_gpb];
-                }
-                ++i_gpt;
-            }
-        }
+        T_lay_batch[i_batch] = T_lay;
+        p_lay_batch[i_batch] = p_lay;
+        n_d_batch[i_batch] = n_d;
+        r_gas_batch[i_batch] = &r_gas_T(i_batch, 0, 0);
+        tau_g_batch[i_batch] = &tau_g_T(i_batch, 0, 0, 0);
+        tau_r_batch[i_batch] = &tau_r_T(i_batch, 0, 0, 0);
 
         // Advance iterators.
+        ++i_batch;
         i_lay += N_CELL;
         T_lay += N_CELL;
         p_lay += N_CELL;
         n_d += N_CELL;
         r_gas += N_CELL * n_gas;
+    }
+
+    for (index_t i_batch = 0; i_batch < 4; ++i_batch) {
+        plugin_rrtmg_taumol_sw(
+            T_lay_batch[i_batch],
+            p_lay_batch[i_batch],
+            n_d_batch[i_batch],
+            *reinterpret_cast<const REAL(*)[N_GAS][N_CELL]>(
+                r_gas_batch[i_batch]),
+            *reinterpret_cast<REAL(*)[N_BND][N_CELL][N_GPB]>(
+                tau_g_batch[i_batch]),
+            *reinterpret_cast<REAL(*)[N_BND][N_CELL][N_GPB]>(
+                tau_r_batch[i_batch]));
+    }
+
+    // Copy taus to result array.
+    index_t i_gpt = 0;
+    for (index_t i_bnd = 0; i_bnd < C_N_BND; ++i_bnd) {
+        for (index_t i_gpb = 0; i_gpb < C_BND_WIDTH[i_bnd]; ++i_gpb) {
+            for (index_t i_cell = 0; i_cell < n_layers; ++i_cell) {
+                const auto i_batch = i_cell / N_CELL;
+                const auto i_batch_idx = i_cell % N_CELL;
+                tau_gas[i_gpt * n_layers + i_cell] =
+                    tau_g_T(i_batch, i_bnd, i_batch_idx, i_gpb);
+                tau_rayl[i_gpt * n_layers + i_cell] =
+                    tau_r_T(i_batch, i_bnd, i_batch_idx, i_gpb);
+            }
+            ++i_gpt;
+        }
     }
 }
 
